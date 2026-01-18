@@ -1,0 +1,18 @@
+name: pipeline CI/CD MLOps
+
+on:
+  pull_request:
+    branches: [ main ]
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check repository
+        uses: actions/checkout@v4
+      
+      - name: SetUp Python
+        uses: actions/setup-pyton@v5
+        with:
+          pyton-version: '3.11.9'  
+      - name: Install requirements
+        run: pip install -r ./python/credit-scoring/requirements.txt
