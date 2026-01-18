@@ -382,6 +382,7 @@ if __name__ == "__main__":
 
 
 """
+
 Execute training file:
 
 python src/train/training.py --config ./config/training/train_credit-scoring_001a.yaml
@@ -389,4 +390,6 @@ python src/train/training.py --config ./config/training/train_credit-scoring_001
 python src/train/training.py --config ./config/training/train_credit-scoring_001c.yaml
 python src/train/training.py --config ./config/training/train_credit-scoring_001d.yaml
 
+
+"executing workflow test;ignore"
 """
