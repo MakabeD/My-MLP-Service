@@ -1,2 +1,8 @@
 *.venv/
 *venv/
+datasets/
+/datasets
+*/models
+*/preprocess
+/models
+/preprocess

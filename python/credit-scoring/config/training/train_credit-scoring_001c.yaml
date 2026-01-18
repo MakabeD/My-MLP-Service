@@ -1,0 +1,59 @@
+version: 0.0.1b
+project_info:
+  benchmark_id: train_credit-scoring_003
+  description: entrenamiento MLP para puntaje crediticio
+
+enviroment: venv
+
+data_source:
+  dataset_name: german_credit_data
+  data_path:
+    dataset_path: "../../datasets/german_credit_data.csv"
+    preprocessor_filename: "german_credit_preprocessor.joblib"
+
+model_config:
+  model_name: "mlp_service_Credit_scoring_model_v001c.pt"
+  model_version: "v001c"
+
+  architecture:
+    hidden_layers: [128, 64]
+    use_batch_norm: true
+    activation_fn: "ReLU"
+    dropout_rate: 0.4
+
+training_params:
+  test_size: 0.2
+  random_state: 42
+  epochs: 100
+  batch_size: 64
+
+  optimizer:
+    name: "Adam"
+    learning_rate: 0.0005
+    weight_decay: 0.001
+
+  loss_function:
+    use_pos_weight: false
+
+  scheduler:
+    name: "ReduceLROnPlateau"
+    patience: 4
+    factor: 0.3
+
+  early_stopping:
+    patience: 8
+    delta: 0.001
+
+evaluation_params:
+  batch_size: 1
+  metrics:
+    - precision
+    - accuracy
+    - recall
+    - f1_score
+    - specificity
+
+mlflow_config:
+  mlflow_proyect_name: "credit_scoring"
+  mlflow_run_name: "Credit_scoring-training_config_v001c"
+  mlflow_tags: ["credit_scoring", "mlp", "training"]
