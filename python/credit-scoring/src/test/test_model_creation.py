@@ -47,7 +47,7 @@ def model_config_fixture():
 def test_model_installiation(model_config_fixture):
     log.info("TEST: verificando la instancia del modelo")
     try:
-        model=creditScoringModel(model_config_fixture)
+        model=creditScoringModel(**model_config_fixture)
         assert model is not None, "El modelo no deberia ser None"
         assert isinstance(model, nn.Module), "El modelo debe ser una instancia de torch.nn.Module"
         log.info("Exito al instancir el modelo")
