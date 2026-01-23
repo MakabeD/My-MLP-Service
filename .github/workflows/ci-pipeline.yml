@@ -2,7 +2,7 @@ name: pipeline CI/CD MLOps
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [ main, dev ]
 jobs:
   build_and_test:
     runs-on: ubuntu-latest
