@@ -80,7 +80,7 @@ def test_model_architecture(model_config_fixture):
 
 def test_forward_pass(model_config_fixture):
     log.info("Test: verificacion del forward pass")
-    model =creditScoringModel(model_config_fixture)
+    model =creditScoringModel(**model_config_fixture)
     model.eval()
 
     batch_size=10
