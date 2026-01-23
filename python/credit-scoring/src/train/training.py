@@ -93,7 +93,7 @@ class train:
 
         # loaders
         self.train_loader, self.val_loader, self.test_loader = self.posDataProcss(
-            batch_size_config
+            batch_size_config`
         )
         # inits
         mlflow.set_experiment(mlflow_cfg["mlflow_proyect_name"])
