@@ -10,7 +10,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), ('..')))
 
 try:
     from src.train.model import creditScoringModel
-except: ImportError:
+except ImportError:
     log.error("asegurate que la estructura del proyecto sea la correcta.")
     log.error("Este script espera estar en /test y el modelo en src/train/model.py.")
     sys.exit(1)
