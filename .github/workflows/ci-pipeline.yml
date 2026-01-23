@@ -19,5 +19,5 @@ jobs:
       - name: Install pytest
         run: pip install pytest
       - name: Run tests
-        run: pytest ./python/crredit-scoring/src/test/test_model_creation.py
+        run: pytest ./python/credit-scoring/src/test/test_model_creation.py
         
