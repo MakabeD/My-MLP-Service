@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import pytest
 import logging as log
-from patlib import Path
+from pathlib import Path
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), ('..'))))
 
