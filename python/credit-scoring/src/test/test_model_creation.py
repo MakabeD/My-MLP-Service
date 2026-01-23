@@ -52,5 +52,5 @@ def test_model_installiation(model_config_fixture):
         assert isinstance(model, nn.Module), "El modelo debe ser una instancia de torch.nn.Module"
         log.info("Exito al instancir el modelo")
     except Exception as e:
-        pytest.fail(f"La instancia del modelo fallo: {e}")
+        pytest.fail(f"La instancia del modelo fallo: {e}.")
 
