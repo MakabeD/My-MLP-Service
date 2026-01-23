@@ -54,3 +54,43 @@ def test_model_installiation(model_config_fixture):
     except Exception as e:
         pytest.fail(f"La instancia del modelo fallo: {e}.")
 
+def test_model_architecture(model_config_fixture):
+    log.info("Test: verificando la arquitectura de la red neuronal")
+    model= creditScoringModel(**model_config_fixture)
+    net= model.network
+     # La arquitectura esperada es: (Linear -> BatchNorm -> ReLU -> Dropout) -> (Linear -> BatchNorm -> ReLU -> Dropout) -> Linear
+    expected_layers_count = len(model_config_fixture["hidden_layers"])* 4 +1
+    assert len(net)== expected_layers_count, f"Se esperaba {expected_layer_count}, habia {len(net)}.}"
+    #hidden layer 1
+    assert isinstance(net[0], nn.Linear) and net[0].in_features==25 and net[0].out_features==128
+    assert isinstance(net[1], nn.BatchNorm1d) and net[1].num_features==128
+    assert isinstance(net[2], nn.ReLU)
+    assert isinstance(net[3], nn.Dropout) and net[3].p==0.2
+
+    #hidden layer 2
+    assert isinstance(net[4], nn.Linear) and net[4].in_features==128 and net[4].out_features==64
+    assert isinstance(net[5], nn.BatchNorm1d) and net[5].num_features==64
+    assert isinstance(net[6], nn.ReLU)
+    assert isinstance(net[7], nn.Dropout) and net[7].p==0.2
+
+    #hidden layer 3
+    assert isinstance(net[8], nn.Linear) and net[8].in_features ==64 and net[8].out_features==1
+
+    log.info("exito al verificar la arquitectura y las capas  del modelo")
+
+def test_forward_pass(model_config_fixture):
+    log.info("Test: verificacion del forward pass")
+    model =creditScoringModel(model_config_fixture)
+    model.eval()
+
+    batch_size=10
+    input_tensor=torch.randn(batch_size, model_config_fixture["num_features"])
+    with torch.no_grad():
+        output=model(input_tensor)
+    expected_shape = (batch_size, 1)
+    assert output.shape==expected_shape, f"la forma del tensor de salida es incorrecto, esperado: {expected_shape}. recivido: {output.shape}"
+    log.info("el forward pass ha sido completado de manera exitosa")
+
+
+    
+    
