@@ -60,7 +60,7 @@ def test_model_architecture(model_config_fixture):
     net= model.network
      # La arquitectura esperada es: (Linear -> BatchNorm -> ReLU -> Dropout) -> (Linear -> BatchNorm -> ReLU -> Dropout) -> Linear
     expected_layers_count = len(model_config_fixture["hidden_layers"])* 4 +1
-    assert len(net)== expected_layers_count, f"Se esperaba {expected_layer_count}, habia {len(net)}.}"
+    assert len(net)== expected_layers_count, f"Se esperaba {expected_layer_count}, habia {len(net)}."
     #hidden layer 1
     assert isinstance(net[0], nn.Linear) and net[0].in_features==25 and net[0].out_features==128
     assert isinstance(net[1], nn.BatchNorm1d) and net[1].num_features==128
