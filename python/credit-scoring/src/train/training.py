@@ -43,7 +43,6 @@ class EarlyStopping:
 
 class train:
     def __init__(self, yaml_path) -> None:
-        
         # yaml loads
         (
             dataset_path,
@@ -108,7 +107,11 @@ class train:
         with mlflow.start_run(run_name=mlflow_cfg["mlflow_run_name"]):
             self.train_loop(epochs=_epochs)
             self.mlflow_params_registry(
-                optimizer_config, loss_config, scheduler_config, early_stopping_config
+                optimizer_config,
+                loss_config,
+                scheduler_config,
+                early_stopping_config,
+                architecture,
             )
             self.test_loop(
                 metrics_to_compute=metrics_to_compute_, mlflow_cfg=mlflow_cfg
@@ -118,18 +121,20 @@ class train:
 
             self.mlflow_metrics_registry(self.metrics, mlflow_cfg)
             self.save_model(model_name)
-    def set_global_seed(self, seed:int): 
+
+    def set_global_seed(self, seed: int):
         import numpy as np
         import torch
+
         np.random.seed(seed)
         torch.manual_seed(seed)
         torch.cuda.manual_seed(seed)
         torch.cuda.manual_seed_all(seed)
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.deterministic = True
-        
+
     def mlflow_params_registry(
-        self, optimizer, use_pos_weight, scheduler, early_stopping
+        self, optimizer, use_pos_weight, scheduler, early_stopping, architecture
     ):
         # optimizer loop
         for name, value in optimizer.items():
@@ -142,6 +147,9 @@ class train:
         # early_stopping
         for name, value in early_stopping.items():
             mlflow.log_param("early_stopping_" + name, value)
+        # architecture
+        for name, value in architecture.items():
+            mlflow.log_param(name, value)
         print("mlflow params")
 
     def set_early_stopping(self, config):
@@ -374,11 +382,12 @@ class train:
             self.metrics = self.compute_metrics(TP, TN, FP, FN, metrics_to_compute)
             self.show_metrics(self.metrics)
 
+
 from src.processing.yaml_process import parse_args as pa
+
 if __name__ == "__main__":
-    
     x = train(pa().config)
-    #print(x.model.get_model_info())
+    # print(x.model.get_model_info())
 
 
 """
@@ -389,6 +398,7 @@ python src/train/training.py --config ./config/training/train_credit-scoring_001
 python src/train/training.py --config ./config/training/train_credit-scoring_001b.yaml
 python src/train/training.py --config ./config/training/train_credit-scoring_001c.yaml
 python src/train/training.py --config ./config/training/train_credit-scoring_001d.yaml
+python src/train/training.py --config ./config/training/train_credit-scoring_001e.yaml
 
 
 "executing workflow test;ignore"

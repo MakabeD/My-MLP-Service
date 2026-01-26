@@ -1,8 +1,6 @@
-from ast import Return
-from typing import List, Optional
+from typing import List
 
 import torch
-import torch.functional as F
 import torch.nn as nn
 
 
