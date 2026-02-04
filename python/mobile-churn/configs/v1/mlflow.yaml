@@ -1,0 +1,13 @@
+evaluation_params:
+  batch_size: 1
+  metrics:
+    - precision
+    - accuracy
+    - recall
+    - f1_score
+    - specificity
+
+mlflow_config:
+  mlflow_proyect_name: "credit_scoring"
+  mlflow_run_name: "Credit_scoring-training_config_v001a"
+  mlflow_tags: ["credit_scoring", "mlp", "training"]
