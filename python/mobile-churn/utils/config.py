@@ -1,7 +1,7 @@
 import argparse
 
 import yaml
-from config_path import config_dir_list
+from config_path import config_dir_list, print_dir_list
 
 CONFIGS_PATH = "./configs"
 
@@ -30,8 +30,7 @@ class Config:
         dir_name_list = config_dir_list(CONFIGS_PATH)
 
         print("[INFO] Available configuration directories:")
-        for i, name in enumerate(dir_name_list):
-            print(f"  [{i}] {name}")
+        print_dir_list(dir_name_list)
 
         try:
             index_dir_name = dir_name_list[dir_index]

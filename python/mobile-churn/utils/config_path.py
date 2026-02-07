@@ -4,6 +4,11 @@ import re
 REGEX = "^[v][0-9]+$"
 
 
+def print_dir_list(dir_name_list):
+    for i, name in enumerate(dir_name_list):
+        print(f"  [{i}] {name}")
+
+
 def config_dir_list(path):
     try:
         subdirectorios = [
