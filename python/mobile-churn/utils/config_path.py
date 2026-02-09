@@ -1,7 +1,10 @@
 import os
 import re
+import sys
 
 REGEX = "^[v][0-9]+$"
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 
 def print_dir_list(dir_name_list):

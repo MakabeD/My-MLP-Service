@@ -8,10 +8,11 @@ from torch.nn.modules.container import Sequential
 class ChurnMLP(nn.Module):
     def __init__(self, num_features: int, model_config: dict) -> None:
         super().__init__()
+        model_config = model_config["model_config"]
         self.num_features = num_features
-        self.hidden_layers = model_config["architecture"]["hidden layers"]
+        self.hidden_layers = model_config["architecture"]["hidden_layers"]
         self.dropout_rate = model_config["architecture"]["dropout_rate"]
-        self.use_batch_norm = model_config["architecture"]["use_batch_size"]
+        self.use_batch_norm = model_config["architecture"]["use_batch_norm"]
         self.activation_fn = model_config["architecture"]["activation_fn"]
         input_size = num_features
         layers = []
@@ -48,18 +49,18 @@ class ChurnMLP(nn.Module):
 
     def get_model_info(self) -> dict:
         return {
-            "model_type":"Mobile Churn",
+            "model_type": "Mobile Churn",
             "num_features": self.num_features,
             "dropout_rate": self.dropout_rate,
-            "use_batch_norm":self.use_batch_norm,
-            "activation_fn":self.activation_fn,
-            "architecture":{
-                "input_layer":self.num_features,
-                "hidden_layers":self.hidden_layers,
-                "output_layer":1,
-                        },
-            "num_parameters":sum(p.numel() for p in self.parameters()),
-            "trainable_parameters":sum(p.numel for p in self.parameters() if torch.requires_grad(p))
+            "use_batch_norm": self.use_batch_norm,
+            "activation_fn": self.activation_fn,
+            "architecture": {
+                "input_layer": self.num_features,
+                "hidden_layers": self.hidden_layers,
+                "output_layer": 1,
+            },
+            "num_parameters": sum(p.numel() for p in self.parameters()),
+            "trainable_parameters": sum(
+                p.numel() for p in self.parameters() if p.requires_grad
+            ),
         }
-            
-    

@@ -1,7 +1,11 @@
 import argparse
+import os
+import sys
 
 import yaml
-from config_path import config_dir_list, print_dir_list
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from utils.config_path import config_dir_list, print_dir_list
 
 CONFIGS_PATH = "./configs"
 
