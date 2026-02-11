@@ -1,6 +1,6 @@
 import argparse 
 def parse_args():
-    parser= argparse.ArgumentParser(description="trainin pipeline for credit scoring model")
+    parser= argparse.ArgumentParser(description="training pipeline for credit scoring model")
     parser.add_argument(
         "--config", 
         type=str,

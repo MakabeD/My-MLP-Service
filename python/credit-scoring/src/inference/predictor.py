@@ -172,14 +172,14 @@ if __name__ == "__main__":
 
     sample = CreditScoringInput(
         **{
-            "Age": 30,
+            "Age": 17,
             "Sex": "male",
             "Job": 0,
-            "Housing": "free",
+            "Housing": "rent",
             "Saving accounts": "NA",
             "Checking account": "NA",
-            "Credit amount": 1000,
-            "Duration": 1,
+            "Credit amount": 10000,
+            "Duration": 12,
             "Purpose": "car",
         }
     )

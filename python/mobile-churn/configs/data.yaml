@@ -1,0 +1,44 @@
+dataset_info:
+  split_ratio: 0.2
+  features:
+    columns:
+      [
+        age,
+        job,
+        urban_rural,
+        marital_status,
+        kids,
+        disposable_income,
+        mobiles_changed,
+        mobile_age,
+        own_smartphone,
+        current_mobile_price,
+        credit_card_type,
+        own_house,
+        own_cr_card,
+        monthly_bill,
+        call_mins,
+        basic_plan_amount,
+        extra_mins,
+        roam_call_mins,
+        call_mins_delta,
+        bill_amount_delta,
+        incoming_call_mins,
+        outgoing_calls,
+        incoming_calls,
+        day_night_call_ratio,
+        day_night_call_delta,
+        calls_dropped,
+        loyalty_months,
+        complaint_calls,
+        promo_calls_made,
+        promo_offers_accepted,
+        new_numbers_called,
+      ]
+    target: customer_dropped
+
+data_source:
+  dataset_name: mobile-churn-customers
+  data_path:
+    dataset_path: "../../datasets/german_credit_data.csv"
+    preprocessor_filename: mobile-churn_preprocessor.joblib
