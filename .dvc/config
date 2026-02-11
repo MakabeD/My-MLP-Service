@@ -1,2 +1,6 @@
+[core]
+    remote = mymlpsstorage
 ['remote "mymlpsstorage"']
+    url = https://dagshub.com/MakabeD/My-MLP-Service.dvc
+['remote "origin"']
     url = https://dagshub.com/MakabeD/My-MLP-Service.dvc
