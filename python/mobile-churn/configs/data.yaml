@@ -40,5 +40,5 @@ dataset_info:
 data_source:
   dataset_name: mobile-churn-customers
   data_path:
-    dataset_path: "../../datasets/german_credit_data.csv"
+    dataset_path: "../../datasets/mobile-churn-customers.csv"
     preprocessor_filename: mobile-churn_preprocessor.joblib
