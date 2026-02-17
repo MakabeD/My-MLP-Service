@@ -1,3 +1,4 @@
+import joblib
 import pandas as pd
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
@@ -17,7 +18,15 @@ class preprocess():
         cat_x, num_x, self.y = self.split_columns(self.df, self.dataset_info["features"]["target"])
         cat_x, num_x = self.cleaning(cat_x, num_x)
         self.preprocessor = self.preprocessor_setup(cat_x, num_x)
-        # TODO: save preprocessor to disk (e.g., using joblib) for later use in inference pipeline
+        #save preprocessor to disk (e.g., using joblib) for later use in inference pipeline
+        for i in datasource.items():
+            print(f"{i[0]}: {i[1]}")
+        joblib_name=datasource["data_path"]["preprocessor_filename"]
+        joblib.dump(self.preprocessor, "artifacts/preprocess/{joblib_name}".format(joblib_name=joblib_name))
+        #log
+        print("Preprocessor saved to artifacts/preprocess/{joblib_name}".format(joblib_name=joblib_name))
+        # TODO: return preprocessed data (X) for training and validation. And (y) for training and validation.
+        
     @staticmethod
     def cleaning(cat_df, num_df):
         cat_df = cat_df.fillna("unknown")
@@ -57,39 +66,16 @@ class preprocess():
 if __name__ == "__main__":
     # To execute this file test mode, run:
     # from the root of the project:
-    # python src/data/preprocess.py --test
+    # python src/data/preprocess.py 
     # Parser for command line arguments
-    import argparse
-    def parse_args():
-        parser = argparse.ArgumentParser(description="Run test.")
-        parser.add_argument("--test", action="store_true", help="Run test.")
-        return parser.parse_args()
-    args = parse_args()
-    # Run test mode if --test flag is provided
-    if args.test:
-        print("Running test mode.")
-    # show the columns and unique values of the dataset (--test flag is required to show unique values)
-    dict_test={
-        "data_path": {
-            "dataset_path": "./../../datasets/mobile-churn-customers.csv"
-        }
-    }
-    dataset_info_test={
-        "features": {
-            "target": "customer_dropped"
-        }
-    }
-    x = preprocess(dict_test, dataset_info_test)
-    cat, num, target = x.split_columns(x.df,"customer_dropped")
-    cat, num = x.cleaning(cat, num)
-    print("Categorical columns (count={}):".format(len(cat.columns)), cat.columns.tolist())
-    print("Numerical columns (count={}):".format(len(num.columns)), num.columns.tolist())
-    if args.test:
-        for col in cat.columns:
-            print(f"Unique values in {col}: {cat[col].unique()}")
-            print("value counts: ", cat[col].value_counts())
-    print("\nCategorical sample:\n", cat.iloc[0:10, :10])
-    print("\nNumerical sample:\n", num.iloc[0:10, :10])
-    if args.test:
-        for col in num.columns:
-            print("{}: {} null values".format(col, num[col].isnull().sum()))  
+    import os 
+    import sys
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+    from utils.config import Config, parse_args
+    config_path = parse_args().config
+    config=Config(config_path)
+    data=config.data
+    data_source=data["data_source"]
+    dataset_info=data["dataset_info"]
+    x = preprocess(data_source, dataset_info)
+    #usage test for preprocessor python src/data/preprocess.py --test
