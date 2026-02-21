@@ -6,6 +6,16 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 
 class Preprocess:
+    """End-to-end preprocessing pipeline for machine learning datasets.
+    
+    Handles data loading, feature splitting, imputation, StandardScaler/OneHotEncoder,
+    train/test/val split, and preprocessor serialization.
+    
+    Attributes:
+        datasource (dict): Data source configuration with dataset path and preprocessor filename.
+        dataset_info (dict): Dataset metadata including split ratios and target column name.
+        random_state (int): Random seed for reproducibility.
+    """
     def __init__(self, datasource: dict, dataset_info: dict, random_state: int = 42):
         self.datasource = datasource
         self.dataset_info = dataset_info
@@ -25,6 +35,7 @@ class Preprocess:
         self.y_train, self.y_test, self.y_val = None, None, None
 
     def run(self):
+        """Execute the complete preprocessing pipeline in order."""
         self.load()
         self.split_columns()
         self.intputting()
@@ -36,10 +47,12 @@ class Preprocess:
         self.rebuild_dataframes()
 
     def run_and_save(self):
+        """Execute the complete pipeline and save the fitted preprocessor to disk."""
         self.run()
         self.save_preprocessor()
 
     def load(self):
+        """Load dataset from CSV and normalize column names (trim whitespace)."""
         # load dataframe from disk
         df = pd.read_csv(self.dataset_path)
         # normalize column names (trim whitespace / invisible chars) to avoid KeyError
@@ -50,11 +63,10 @@ class Preprocess:
         self.df = df
 
     def split_columns(self):
-        """Splits the dataframe into categorical, numerical, and target columns based on the specified target column name.
-
-        - `categorical_df`: categorical columns (dtype != number)
-        - `numerical_df`: numeric columns (dtype == number)
-        - `target`: target column (dtype can be either number or non-number)
+        """Separate features into categorical, numerical, and target columns.
+        
+        Maps target values to binary (e.g., 'true'→1, 'false'→0, 'yes'→1, 'no'→0).
+        Removes rows with unmapped target values and logs warnings.
         """
         target_column = self.target_column
         df = self.df
@@ -63,13 +75,13 @@ class Preprocess:
                 f"Target column '{target_column}' not found in dataframe columns. Available columns: {list(df.columns)}"
             )
 
-        # target
+        # target: normalize and map to binary
         target = df[target_column].copy()
         target = target.astype(str).str.strip().str.lower()
         mapping = {"true": 1, "false": 0, "yes": 1, "no": 0, "1": 1, "0": 0}
         target = target.map(mapping)
 
-        # on split_columns, after .map(...)
+        # remove rows with invalid target values (unmapped)
         mask = target.notna()
         if not mask.all():
             print(
@@ -78,7 +90,7 @@ class Preprocess:
             df = df.loc[mask].copy()
             target = target[mask].copy()
 
-        # x
+        # separate categorical and numerical features
         df = df.drop(columns=target_column)
         numerical_df = df.select_dtypes(include=["number"]).copy()
         categorical_df = df.select_dtypes(exclude=["number"]).copy()
@@ -88,10 +100,12 @@ class Preprocess:
         self.y = target
 
     def intputting(self):
+        """Impute missing values: categorical → "unknown", numerical → median."""
         self.cat_df = self.cat_df.fillna("unknown")
         self.num_df = self.num_df.fillna(self.num_df.median())
 
     def preprocessor_setup(self):
+        """Initialize ColumnTransformer with StandardScaler for numerical and OneHotEncoder for categorical features."""
         cat_df = self.cat_df
         num_df = self.num_df
         self.preprocessor = ColumnTransformer(
@@ -102,18 +116,22 @@ class Preprocess:
         )
 
     def join_cat_num(self):
+        """Combine categorical and numerical features back into a single dataframe."""
         self.df = self.cat_df.join(self.num_df)
 
     def split(self):
+        """Split data into train/test/val sets using stratified sampling by target."""
         train_size = 1 - self.split_ratio
         test_size = self.split_ratio / 2
         val_size = self.split_ratio / 2
         df = self.df
         y = self.y
 
+        # first split: train vs temp (test+val)
         x_train, x_temp, y_train, y_temp = train_test_split(
             df, y, train_size=train_size, random_state=self.random_state, stratify=y
         )
+        # second split: test vs val from temp set
         x_test, x_val, y_test, y_val = train_test_split(
             x_temp,
             y_temp,
@@ -134,14 +152,17 @@ class Preprocess:
         )
 
     def preprocess_fit(self):
+        """Fit the preprocessor (StandardScaler, OneHotEncoder) on training data only."""
         self.preprocessor.fit(self.x_train)
 
     def preprocess_transform(self):
+        """Apply the fitted preprocessor to transform train/test/val sets."""
         self.x_train = self.preprocessor.transform(self.x_train)
         self.x_test = self.preprocessor.transform(self.x_test)
         self.x_val = self.preprocessor.transform(self.x_val)
 
     def rebuild_dataframes(self):
+        """Rebuild train/test/val sets as DataFrames with feature names from preprocessor output."""
         self.x_train = pd.DataFrame(
             self.x_train, columns=self.preprocessor.get_feature_names_out()
         )
@@ -156,6 +177,7 @@ class Preprocess:
         )
 
     def save_preprocessor(self):
+        """Serialize fitted preprocessor to disk using joblib for later inference."""
         preprocessor = self.preprocessor
         preprocessor_filename = self.preprocessor_filename
         joblib.dump(
@@ -172,10 +194,9 @@ class Preprocess:
 
 
 if __name__ == "__main__":
-    # To execute this file test mode, run:
-    # from the root of the project:
-    # python src/data/preprocess.py
-    # Parser for command line arguments
+    """Entry point: load config and execute preprocessing pipeline with serialization."""
+    # To execute this file in test mode, run from the project root(mobile-churn) with:
+    # python src/data/preprocess.py --config 0
     import os
     import sys
 
@@ -189,4 +210,3 @@ if __name__ == "__main__":
     dataset_info = data["dataset_info"]
     x = Preprocess(data_source, dataset_info)
     x.run_and_save()
-    # usage test for preprocessor python src/data/preprocess.py --test
