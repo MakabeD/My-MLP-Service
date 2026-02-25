@@ -35,6 +35,34 @@ dataset_info:
         promo_offers_accepted,
         new_numbers_called,
       ]
+    num_columns:
+      [
+        "age",
+        "disposable_income",
+        "mobiles_changed",
+        "mobile_age",
+        "current_mobile_price",
+        "monthly_bill",
+        "call_mins",
+        "basic_plan_amount",
+        "extra_mins",
+        "roam_call_mins",
+        "call_mins_delta",
+        "bill_amount_delta",
+        "incoming_call_mins",
+        "outgoing_calls",
+        "incoming_calls",
+        "day_night_call_ratio",
+        "day_night_call_delta",
+        "calls_dropped",
+        "loyalty_months",
+        "complaint_calls",
+        "promo_calls_made",
+        "promo_offers_accepted",
+        "new_numbers_called",
+      ]
+    binary_columns: ["kids", "own_smartphone", "own_house", "own_cr_card"]
+    cat_columns: ["job", "urban_rural", "marital_status", "credit_card_type"]
     target: customer_dropped
 
 data_source:
