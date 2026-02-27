@@ -2,7 +2,7 @@ import random
 
 import numpy as np
 import torch
-from preprocess import Preprocess
+from src.data.preprocess import Preprocess
 from torch.utils.data import DataLoader, TensorDataset
 
 

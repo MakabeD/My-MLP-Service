@@ -45,10 +45,11 @@ class Preprocess:
         random_state (int): Random seed for reproducibility.
     """
 
-    def __init__(self, datasource: dict, dataset_info: dict, random_state: int = 42):
+    def __init__(self, datasource: dict, dataset_info: dict, random_state: int = 42,  show_unique_values: bool = False):
         self.datasource = datasource
         self.dataset_info = dataset_info
         self.random_state = random_state
+        self.show_unique_values = show_unique_values
         self.dataset_path = datasource["data_path"]["dataset_path"]
         self.preprocessor_filename = datasource["data_path"]["preprocessor_filename"]
         self.split_ratio = dataset_info["split_ratio"]
@@ -227,7 +228,8 @@ class Preprocess:
         print(
             f"Cleaning completed. Feature matrix 'self.X' ready. Shape: {self.X.shape}"
         )
-        check_unique_values(self.df)
+        if self.show_unique_values:
+            check_unique_values(self.df)
 
     def preprocessor_setup(self):
         """Initialize ColumnTransformer with StandardScaler for numerical and OneHotEncoder for categorical features."""
