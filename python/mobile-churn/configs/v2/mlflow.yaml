@@ -1,0 +1,9 @@
+mlflow_config:
+  experiment_name: "mobile_churn_prediction"
+  run_name: "churn_v2_baseline_large_regularization"
+  description: "Baseline model with increased regularization (dropout=0.2, batch_norm)"
+  tags:
+    - "mobile_churn"
+    - "mlp"
+    - "baseline"
+    - "v1"

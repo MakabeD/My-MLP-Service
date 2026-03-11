@@ -72,12 +72,16 @@ class Config:
         with open("./configs/" + dir_name + "/training.yaml", "r") as f:
             config = yaml.safe_load(f)
             return config
-
+    def load_data_config(self):
+        print("[INFO] Loading data.yaml")
+        with open("./configs/" + "/data.yaml", "r") as f:
+            config = yaml.safe_load(f)
+            return config
     def load_config(self, dir_name):
         self.model = self.load_model_config(dir_name)
         self.mlflow = self.load_mlflow_config(dir_name)
         self.training = self.load_training_config(dir_name)
-
+        self.data = self.load_data_config()
 
 if __name__ == "__main__":
     dir_index = parse_args().config

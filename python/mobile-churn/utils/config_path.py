@@ -12,7 +12,7 @@ def print_dir_list(dir_name_list):
         print(f"  [{i}] {name}")
 
 
-def config_dir_list(path):
+def config_dir_list(path) -> list:
     try:
         subdirectorios = [
             nombre
