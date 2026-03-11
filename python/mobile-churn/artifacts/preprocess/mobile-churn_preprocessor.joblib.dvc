@@ -1,5 +1,0 @@
-outs:
-- md5: 6a8fc1846c34f8fd8a86cfacad88991e
-  size: 6404
-  hash: md5
-  path: mobile-churn_preprocessor.joblib

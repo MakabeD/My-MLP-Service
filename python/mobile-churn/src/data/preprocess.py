@@ -173,56 +173,15 @@ class Preprocess:
                 self.df[self.num_cols].median()
             )
 
-        # 2. CATEGORICAL FEATURES CLEANING
-        if hasattr(self, "cat_cols") and self.cat_cols:
-            # Standardize string garbage into actual 'unknown' category
-            garbage_values = ["NA", "nan", "NaN", "unknown", " ", ""]
+        
 
-            for col in self.cat_cols:
-                # Normalize strings: lowercase and strip whitespace
-                self.df[col] = self.df[col].astype(str).str.lower().str.strip()
-                # Replace garbage/missing markers with 'unknown'
-                self.df[col] = self.df[col].replace(garbage_values, "unknown")
+            
 
-            # Final fill for any remaining physical NaNs
-            self.df[self.cat_cols] = self.df[self.cat_cols].fillna("unknown")
-
-        # 3. BINARY FEATURES CLEANING
-        if hasattr(self, "binary_cols") and self.binary_cols:
-            # Map various truthy/falsy strings to strict 1/0 integers
-            binary_mapping = {
-                "true": 1,
-                "false": 0,
-                "yes": 1,
-                "no": 0,
-                "t": 1,
-                "f": 0,
-                "1": 1,
-                "0": 0,
-                "1.0": 1,
-                "0.0": 0,
-            }
-
-            for col in self.binary_cols:
-                # Convert to string and normalize to ensure mapping works
-                self.df[col] = (
-                    self.df[col].astype(str).str.lower().str.strip().map(binary_mapping)
-                )
-
-                # Imputation: Fill missing binary values with the column mode (most frequent)
-                col_mode = self.df[col].mode()
-                if not col_mode.empty:
-                    self.df[col] = self.df[col].fillna(col_mode.iloc[0])
-                else:
-                    # Fallback if the whole column is NaN
-                    self.df[col] = self.df[col].fillna(0)
-
-            # Ensure final type is integer for binary columns
-            self.df[self.binary_cols] = self.df[self.binary_cols].astype(int)
+            
 
         # 4. FINAL ASSEMBLY
         # Create self.X containing only the features cleaned (excluding target and ID)
-        all_features = self.num_cols + self.cat_cols + self.binary_cols
+        all_features = self.num_cols 
         self.X = self.df[all_features].copy()
 
         print(
@@ -244,9 +203,7 @@ class Preprocess:
         )
         self.preprocessor = ColumnTransformer(
             transformers=[
-                ("num", num_pipeline, num_cols),
-                ("cat", OneHotEncoder(handle_unknown="ignore"), cat_cols),
-                ("bin", "passthrough", binary_cols),
+                ("num", num_pipeline, num_cols),               
             ]
         )
 

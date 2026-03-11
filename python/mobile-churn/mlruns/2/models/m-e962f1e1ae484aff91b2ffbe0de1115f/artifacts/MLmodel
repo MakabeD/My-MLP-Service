@@ -1,0 +1,23 @@
+artifact_path: file:///C:/Users/danie/OneDrive/Documentos/DeepLearning/My_MLP/python/mobile-churn/mlruns/2/models/m-e962f1e1ae484aff91b2ffbe0de1115f/artifacts
+flavors:
+  python_function:
+    config:
+      device: null
+    data: data
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.pytorch
+    pickle_module_name: mlflow.pytorch.pickle_module
+    python_version: 3.10.11
+  pytorch:
+    code: null
+    model_data: data
+    pytorch_version: 2.10.0+cpu
+mlflow_version: 3.10.1
+model_id: m-e962f1e1ae484aff91b2ffbe0de1115f
+model_size_bytes: 26688
+model_uuid: m-e962f1e1ae484aff91b2ffbe0de1115f
+prompts: null
+run_id: f95805535d9b467299067d7035b4abf8
+utc_time_created: '2026-03-10 20:58:42.299381'
