@@ -88,7 +88,7 @@ class Trainer:
     def run_train(self):
         mlflow.set_experiment(self.experiment_name)
         with mlflow.start_run(
-            run_name=f"v{self.config_index}_{self.mlflow_cfg['mlflow_config']['run_name']}"
+            run_name=f"{self.mlflow_cfg['mlflow_config']['run_name']}"
         ):
             self._log_experiment_config()
             self.train_loop()
@@ -97,7 +97,7 @@ class Trainer:
             print("[COMPLETE] Training and evaluation finished!")
 
     def __init__(
-        self, config_index: int, experiment_name: str = "mobile_churn_prediction"
+        self, config_index: int, experiment_name: str = "mobile_churn_prediction", threshold:float=0.4
     ):
         """
         Initialize trainer with configuration.
@@ -108,6 +108,7 @@ class Trainer:
         print(f"\n{'=' * 70}")
         print(f"[TRAINER] Initializing with config index: {config_index}")
         print(f"{'=' * 70}\n")
+        self.threshold =threshold
         self.experiment_name = experiment_name
         self.config_index = config_index
         self.config = Config(dir_index=config_index)
@@ -344,7 +345,7 @@ class Trainer:
 
             # Compute predictions and confusion matrix
             with torch.no_grad():
-                pred = (torch.sigmoid(logits) >= 0.5).float()
+                pred = (torch.sigmoid(logits) >=self.threshold).float()
                 TP += ((pred == 1) & (y_batch == 1)).sum().item()
                 TN += ((pred == 0) & (y_batch == 0)).sum().item()
                 FP += ((pred == 1) & (y_batch == 0)).sum().item()
@@ -373,7 +374,7 @@ class Trainer:
                 logits = self.model(x_val)
                 val_loss += self.criterion(logits, y_val).item()
 
-                pred = (torch.sigmoid(logits) >= 0.5).float()
+                pred = (torch.sigmoid(logits) >=self.threshold).float()
                 TP += ((pred == 1) & (y_val == 1)).sum().item()
                 TN += ((pred == 0) & (y_val == 0)).sum().item()
                 FP += ((pred == 1) & (y_val == 0)).sum().item()
@@ -462,7 +463,7 @@ class Trainer:
 
                 self.all_probs.extend(probs.cpu().numpy())
                 
-                preds = (probs >= 0.5).float()
+                preds = (probs >=self.threshold).float()
 
                 TP += ((preds == 1) & (y == 1)).sum().item()
                 TN += ((preds == 0) & (y == 0)).sum().item()
@@ -532,9 +533,7 @@ class Trainer:
         if path is None:
             base_path = "artifacts/models"
             os.makedirs(base_path, exist_ok=True)
-            model_name = self.model_config["model_config"].get(
-                "model_version", "default_name"
-            ) + self.model_config["model_config"].get(
+            model_name =  self.model_config["model_config"].get(
                 "model_name", "mobile_churn_model.pt"
             )
             path = os.path.join(base_path, model_name)
@@ -574,7 +573,7 @@ class Trainer:
 
 def main():
     args = parse_args()
-    trainer = Trainer(config_index=args.config)
+    trainer = Trainer(config_index=args.config, experiment_name="telecom_churn_prediction")
     trainer.run_train()
     trainer.plot_training()
     trainer.plot_hist()

@@ -1,8 +1,8 @@
 model_config:
-  model_name: mlp_service_mobile-churn_v2.pt
+  model_name: mlp_service_telecom-churn_v2.pt
   model_version: v2
   architecture:
-    hidden_layers: [64, 32]
+    hidden_layers: [128, 64]
     dropout_rate: 0.2
     use_batch_norm: true
     activation_fn: ReLU
