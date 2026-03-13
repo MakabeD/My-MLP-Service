@@ -1,7 +1,7 @@
 import os
 import sys
 from typing import Dict, Optional
-
+import matplotlib.pyplot as plt
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 import mlflow
@@ -115,6 +115,7 @@ class Trainer:
         self._prepare_data()
         self._build_model()
         self._setup_training_components()
+        self.all_probs = []
         self.history = {
             "train_loss": [],
             "val_loss": [],
@@ -350,7 +351,7 @@ class Trainer:
                 FN += ((pred == 0) & (y_batch == 1)).sum().item()
 
         metrics = compute_metrics(TP, TN, FP, FN)
-        metrics["loss"] = train_loss
+        metrics["loss"] = train_loss / len(self.train_loader)
         return metrics
 
     def _validate_epoch(self) -> Dict[str, float]:
@@ -379,7 +380,7 @@ class Trainer:
                 FN += ((pred == 0) & (y_val == 1)).sum().item()
 
         metrics = compute_metrics(TP, TN, FP, FN)
-        metrics["loss"] = val_loss
+        metrics["loss"] = val_loss / len(self.val_loader)
         return metrics
 
     def train_loop(self) -> None:
@@ -449,6 +450,8 @@ class Trainer:
         self.model.eval()
         TP = TN = FP = FN = 0
 
+        
+
         with torch.no_grad():
             for x, y in dataset_loader:
                 x = x.to(device)
@@ -456,6 +459,9 @@ class Trainer:
 
                 logits = self.model(x)
                 probs = torch.sigmoid(logits)
+
+                self.all_probs.extend(probs.cpu().numpy())
+                
                 preds = (probs >= 0.5).float()
 
                 TP += ((preds == 1) & (y == 1)).sum().item()
@@ -540,6 +546,28 @@ class Trainer:
         mlflow.pytorch.log_model(self.model, "churn_model")
         print(f"[MLFLOW] Model logged to MLflow")
 
+    def plot_hist(self):
+        plt.hist(self.all_probs, bins=50)
+        plt.title("Prediction probability distribution")
+        plt.show()
+        
+    def plot_training(self):
+
+        plt.figure(figsize=(12,5))
+
+        plt.subplot(1,2,1)
+        plt.plot(self.history["train_loss"], label="train_loss")
+        plt.plot(self.history["val_loss"], label="val_loss")
+        plt.legend()
+        plt.title("Loss")
+
+        plt.subplot(1,2,2)
+        plt.plot(self.history["train_acc"], label="train_acc")
+        plt.plot(self.history["val_acc"], label="val_acc")
+        plt.legend()
+        plt.title("Accuracy")
+
+        plt.show()
 
 # Main Execution
 
@@ -548,6 +576,8 @@ def main():
     args = parse_args()
     trainer = Trainer(config_index=args.config)
     trainer.run_train()
+    trainer.plot_training()
+    trainer.plot_hist()
 
 
 if __name__ == "__main__":
