@@ -3,6 +3,12 @@ name: pipeline CI/CD MLOps
 on:
   pull_request:
     branches: [ main, dev]
+    paths:
+      - 'python/credit-scoring/**'
+  push:
+    branches: [ main, dev]
+    paths:
+      - 'python/credit-scoring/**'
 jobs:
   build_and_test:
     runs-on: ubuntu-latest

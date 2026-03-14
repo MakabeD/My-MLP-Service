@@ -4,7 +4,7 @@ import sys
 import torch
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
-from mlp import ChurnMLP
+from src.model.mlp import ChurnMLP
 from utils.config import Config
 
 
