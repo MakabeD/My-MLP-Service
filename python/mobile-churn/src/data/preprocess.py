@@ -6,7 +6,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
-
+from src.data.EDA import perform_eda
 
 def check_unique_values(df):
     """
@@ -150,14 +150,6 @@ class Preprocess:
 
         # 1. NUMERICAL FEATURES CLEANING
         if hasattr(self, "num_cols") and self.num_cols:
-            # Business Rule: Age cannot be 0 for a credit/telecom customer
-            if "age" in self.num_cols:
-                zero_age_count = (self.df["age"] == 0).sum()
-                if zero_age_count > 0:
-                    print(
-                        f"   -> Replacing {zero_age_count} zero-ages with NaN for proper imputation."
-                    )
-                    self.df["age"] = self.df["age"].replace(0, np.nan)
 
             # Logic Rule: Prices and Income should not be negative
             monetary_cols = [
@@ -173,22 +165,51 @@ class Preprocess:
                 self.df[self.num_cols].median()
             )
 
-        
+       
 
-            
+        # 3. BINARY FEATURES CLEANING
+        if hasattr(self, "binary_cols") and self.binary_cols:
+            # Map various truthy/falsy strings to strict 1/0 integers
+            binary_mapping = {
+                "true": 1,
+                "false": 0,
+                "yes": 1,
+                "no": 0,
+                "t": 1,
+                "f": 0,
+                "1": 1,
+                "0": 0,
+                "1.0": 1,
+                "0.0": 0,
+            }
 
-            
+            for col in self.binary_cols:
+                # Convert to string and normalize to ensure mapping works
+                self.df[col] = (
+                    self.df[col].astype(str).str.lower().str.strip().map(binary_mapping)
+                )
+
+                # Imputation: Fill missing binary values with the column mode (most frequent)
+                col_mode = self.df[col].mode()
+                if not col_mode.empty:
+                    self.df[col] = self.df[col].fillna(col_mode.iloc[0])
+                else:
+                    # Fallback if the whole column is NaN
+                    self.df[col] = self.df[col].fillna(0)
+
+            # Ensure final type is integer for binary columns
+            self.df[self.binary_cols] = self.df[self.binary_cols].astype(int)
 
         # 4. FINAL ASSEMBLY
         # Create self.X containing only the features cleaned (excluding target and ID)
-        all_features = self.num_cols 
+        all_features = self.num_cols + self.binary_cols #+ self.cat_cols
         self.X = self.df[all_features].copy()
-
+           
         print(
             f"Cleaning completed. Feature matrix 'self.X' ready. Shape: {self.X.shape}"
         )
         if self.show_unique_values:
-            check_unique_values(self.df)
+            check_unique_values(self.X)
 
     def preprocessor_setup(self):
         """Initialize ColumnTransformer with StandardScaler for numerical and OneHotEncoder for categorical features."""
@@ -203,7 +224,9 @@ class Preprocess:
         )
         self.preprocessor = ColumnTransformer(
             transformers=[
-                ("num", num_pipeline, num_cols),               
+                ("num", num_pipeline, num_cols),
+                #("cat", OneHotEncoder(handle_unknown="ignore"), cat_cols),
+                ("bin", "passthrough", binary_cols),
             ]
         )
 
@@ -212,11 +235,11 @@ class Preprocess:
         train_size = 1 - self.split_ratio
         test_size = self.split_ratio / 2
         val_size = self.split_ratio / 2
-        df = self.X
+        x = self.X
         y = self.y
         # first split: train vs temp (test+val)
         x_train, x_temp, y_train, y_temp = train_test_split(
-            df, y, train_size=train_size, random_state=self.random_state, stratify=y
+            x, y, train_size=train_size, random_state=self.random_state, stratify=y
         )
         # second split: test vs val from temp set
         x_test, x_val, y_test, y_val = train_test_split(
@@ -301,4 +324,14 @@ if __name__ == "__main__":
     data = config.data
     data_source = data["data_source"]
     dataset_info = data["dataset_info"]
-    x = Preprocess(data_source, dataset_info)
+    x = Preprocess(data_source, dataset_info, show_unique_values=True)
+    x.load()
+    x.split_columns()
+    x.cleaning()
+    perform_eda(x.df)
+    x.preprocessor_setup()
+    x.split()
+    x.preprocess_fit()
+    x.preprocess_transform()
+    x.rebuild_dataframes()# success
+    

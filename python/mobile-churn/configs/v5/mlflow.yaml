@@ -1,7 +1,7 @@
 mlflow_config:
-  experiment_name: "mobile_churn_prediction"
-  run_name: "churn_v5_baseline_large_regularization"
-  description: "Baseline model with increased regularization (dropout=0.2, batch_norm)"
+  experiment_name: "telecom_churn_prediction"
+  run_name: "telecom_churn_v5_run"
+  description: "Baseline model with increased regularization"
   tags:
     - "mobile_churn"
     - "mlp"

@@ -1,5 +1,5 @@
 model_config:
-  model_name: mlp_service_mobile-churn_v3.pt
+  model_name: mlp_service_telecom-churn_v3.pt
   model_version: v3
   architecture:
     hidden_layers: [64, 32, 16]

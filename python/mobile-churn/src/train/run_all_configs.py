@@ -10,7 +10,7 @@ from src.train.trainer import Trainer
 def run():
     amount = len(config_dir_list("./configs"))
     for i in range(amount):
-        trainer = Trainer(i, "Experiment: 0.1")
+        trainer = Trainer(i, "telecom_churn_prediction threshold: 0.3", threshold=0.3)
         trainer.run_train()
     print(
         "\n \n",

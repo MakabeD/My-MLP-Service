@@ -8,3 +8,4 @@ datasets/
 /preprocess
 *__pycache__/
 *.py[cod]
+*/mlruns/

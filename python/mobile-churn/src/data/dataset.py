@@ -2,6 +2,9 @@ import random
 
 import numpy as np
 import torch
+import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 from src.data.preprocess import Preprocess
 from torch.utils.data import DataLoader, TensorDataset
 
@@ -95,10 +98,6 @@ class DatasetManager:
 if __name__ == "__main__":
     """Entry point: load config and execute preprocessing pipeline with serialization."""
 
-    import os
-    import sys
-
-    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
     from utils.config import Config, parse_args
 
     config_index = parse_args().config
