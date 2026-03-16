@@ -1,7 +1,9 @@
 import os
 import sys
 from typing import Dict, Optional
+
 import matplotlib.pyplot as plt
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 import mlflow
@@ -97,7 +99,10 @@ class Trainer:
             print("[COMPLETE] Training and evaluation finished!")
 
     def __init__(
-        self, config_index: int, experiment_name: str = "mobile_churn_prediction", threshold:float=0.4
+        self,
+        config_index: int,
+        experiment_name: str = "mobile_churn_prediction",
+        threshold: float = 0.4,
     ):
         """
         Initialize trainer with configuration.
@@ -108,7 +113,7 @@ class Trainer:
         print(f"\n{'=' * 70}")
         print(f"[TRAINER] Initializing with config index: {config_index}")
         print(f"{'=' * 70}\n")
-        self.threshold =threshold
+        self.threshold = threshold
         self.experiment_name = experiment_name
         self.config_index = config_index
         self.config = Config(dir_index=config_index)
@@ -345,7 +350,7 @@ class Trainer:
 
             # Compute predictions and confusion matrix
             with torch.no_grad():
-                pred = (torch.sigmoid(logits) >=self.threshold).float()
+                pred = (torch.sigmoid(logits) >= self.threshold).float()
                 TP += ((pred == 1) & (y_batch == 1)).sum().item()
                 TN += ((pred == 0) & (y_batch == 0)).sum().item()
                 FP += ((pred == 1) & (y_batch == 0)).sum().item()
@@ -374,7 +379,7 @@ class Trainer:
                 logits = self.model(x_val)
                 val_loss += self.criterion(logits, y_val).item()
 
-                pred = (torch.sigmoid(logits) >=self.threshold).float()
+                pred = (torch.sigmoid(logits) >= self.threshold).float()
                 TP += ((pred == 1) & (y_val == 1)).sum().item()
                 TN += ((pred == 0) & (y_val == 0)).sum().item()
                 FP += ((pred == 1) & (y_val == 0)).sum().item()
@@ -451,8 +456,6 @@ class Trainer:
         self.model.eval()
         TP = TN = FP = FN = 0
 
-        
-
         with torch.no_grad():
             for x, y in dataset_loader:
                 x = x.to(device)
@@ -462,8 +465,8 @@ class Trainer:
                 probs = torch.sigmoid(logits)
 
                 self.all_probs.extend(probs.cpu().numpy())
-                
-                preds = (probs >=self.threshold).float()
+
+                preds = (probs >= self.threshold).float()
 
                 TP += ((preds == 1) & (y == 1)).sum().item()
                 TN += ((preds == 0) & (y == 0)).sum().item()
@@ -533,7 +536,7 @@ class Trainer:
         if path is None:
             base_path = "artifacts/models"
             os.makedirs(base_path, exist_ok=True)
-            model_name =  self.model_config["model_config"].get(
+            model_name = self.model_config["model_config"].get(
                 "model_name", "mobile_churn_model.pt"
             )
             path = os.path.join(base_path, model_name)
@@ -549,18 +552,18 @@ class Trainer:
         plt.hist(self.all_probs, bins=50)
         plt.title("Prediction probability distribution")
         plt.show()
-        
+
     def plot_training(self):
 
-        plt.figure(figsize=(12,5))
+        plt.figure(figsize=(12, 5))
 
-        plt.subplot(1,2,1)
+        plt.subplot(1, 2, 1)
         plt.plot(self.history["train_loss"], label="train_loss")
         plt.plot(self.history["val_loss"], label="val_loss")
         plt.legend()
         plt.title("Loss")
 
-        plt.subplot(1,2,2)
+        plt.subplot(1, 2, 2)
         plt.plot(self.history["train_acc"], label="train_acc")
         plt.plot(self.history["val_acc"], label="val_acc")
         plt.legend()
@@ -568,12 +571,17 @@ class Trainer:
 
         plt.show()
 
+
 # Main Execution
 
 
 def main():
     args = parse_args()
-    trainer = Trainer(config_index=args.config, experiment_name="telecom_churn_prediction")
+    trainer = Trainer(
+        config_index=args.config,
+        experiment_name="telecom_churn_prediction: test",
+        threshold=0.3,
+    )
     trainer.run_train()
     trainer.plot_training()
     trainer.plot_hist()
