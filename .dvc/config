@@ -2,3 +2,5 @@
     remote = storage
 ['remote "storage"']
     url = https://dagshub.com/MakabeD/MLP_services.dvc
+    auth = basic
+    user = MakabeD
