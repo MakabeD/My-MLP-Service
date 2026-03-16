@@ -20,5 +20,9 @@ jobs:
         run: pip install -r ./python/credit-scoring/requirements.txt
       - name: Install pytest
         run: pip install pytest
+      - name: Install DVC
+        run: pip install dvc
+      - name: Pull DVC data 
+        run: dvc pull
       - name: Run tests
         run: pytest ./python/credit-scoring/src/test/
