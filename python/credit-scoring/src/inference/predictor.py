@@ -1,106 +1,107 @@
-import logging as log
-import os
+import logging
 import sys
+from pathlib import Path
+from typing import Any, Dict
 
 import joblib
 import numpy as np
 import pandas as pd
 import torch
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
-from src.server.schemas import CreditScoringInput
+# Dynamically resolve the absolute path to the project root
+ROOT_DIR = Path(__file__).resolve().parent.parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.append(str(ROOT_DIR))
+
+from src.server.schemas import CreditScoringInput, CreditScoringOutPut
 from src.train.training import creditScoringModel
 
-device_ = "cpu"
+# --- CONFIGURATION ---
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
-log.basicConfig(level=log.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+DEVICE = "cpu"
+NUM_FEATURES = 26
+RISK_THRESHOLD = 0.5
 
 
 class CreditScoringRiskPredictor:
     """
-    Orchestrates the loading of artifacts and the execution of inference
+    Service class responsible for loading machine learning artifacts
+    (model weights and preprocessor) and executing inference for credit scoring.
     """
 
-    def __init__(self, model_path, preprocessor_path, model_config):
+    def __init__(
+        self, model_path: Path, preprocessor_path: Path, model_config: Dict[str, Any]
+    ):
+        """
+        Initializes the predictor, storing paths and config, and loads artifacts.
+        """
         self.model_path = model_path
         self.preprocessor_path = preprocessor_path
         self.model_config = model_config
-        self.preprocessor = None
+        self.preprocessor_data = None
         self.model = None
+
         self._load_artifacts()
 
-    def _load_artifacts(self):
+    def _load_artifacts(self) -> None:
         """
-        load the artifacts from the path
+        Loads the joblib preprocessor dictionary and the PyTorch model weights.
+        Raises an exception if files are missing or corrupted.
         """
+        logger.info(f"Loading preprocessor from: {self.preprocessor_path}")
         try:
-            self.preprocessor = joblib.load(self.preprocessor_path)
-            log.info(f"Archivo preprocesador cargado desde: {self.preprocessor_path}")
+            self.preprocessor_data = joblib.load(self.preprocessor_path)
+            logger.info("Preprocessor loaded successfully.")
         except FileNotFoundError:
-            log.error(
-                f"No se encontro el archivo preprocesado en: {self.preprocessor_path}"
-            )
+            logger.error(f"Preprocessor file not found at: {self.preprocessor_path}")
             raise
 
+        logger.info(f"Loading PyTorch model weights from: {self.model_path}")
         try:
-            # recreate the architecture of the model
+            # Recreate model architecture
             self.model = creditScoringModel(
-                num_features=26,
+                num_features=NUM_FEATURES,
                 hidden_layers=self.model_config["hidden_layers"],
                 dropout_rate=self.model_config["dropout_rate"],
                 use_batch_norm=self.model_config["use_batch_norm"],
                 activation_funct=self.model_config["activation_fn"],
             )
-            # load weights trained
+
+            # Load weights
             self.model.load_state_dict(
-                torch.load(self.model_path, map_location=torch.device(device_))
+                torch.load(
+                    self.model_path,
+                    map_location=torch.device(DEVICE),
+                    weights_only=True,
+                )
             )
             self.model.eval()
-            log.info(f" Pesos del modelo cargados desde: {self.model_path}")
-            log.info(" Modelo y preprocesador cargados exitosamente.")
+            logger.info("Model weights loaded and set to evaluation mode successfully.")
         except FileNotFoundError:
-            log.error(f"Archivo no encontrado en {self.model_path}")
+            logger.error(f"Model file not found at: {self.model_path}")
             raise
         except Exception as e:
-            log.error(f"Error al cargar el modelo: {e}")
+            logger.error(f"Error loading the model architecture or weights: {e}")
             raise
 
-    def predict(self, input_data: CreditScoringInput):
-        """Make the prediction"""
-        # pydantic to dataframe
-        input_df = pd.DataFrame([input_data.model_dump(by_alias=True)])
-        # dataframe to ---->>>>  preprocessing /// tensor
-        input_tensor = self.preprocess_for_inference(input_df, self.preprocessor)
-
-        # predition
-        with torch.no_grad():
-            logits = self.model(input_tensor)
-            probability = torch.sigmoid(logits).item()
-            # 5. format outout
-        prediction = "good" if probability >= 0.5 else "bad"
-        log.info(
-            f"Predicción generada: {prediction} con probabilidad: {probability:.4f}"
-        )
-
-        return {"prediction": prediction, "probability": probability}
-
-    def preprocess_for_inference(
-        self,
-        df: pd.DataFrame,
-        preprocessor,
-    ) -> torch.Tensor:
+    def _preprocess_for_inference(self, df: pd.DataFrame) -> torch.Tensor:
         """
-        Recibe un DataFrame crudo y un joblib de preprocessing.
-        Devuelve un tensor listo para inferencia.
+        Applies the training preprocessing logic (handling NaNs, scaling, OHE)
+        to the raw input dataframe.
+
+        Args:
+            df (pd.DataFrame): Raw input dataframe.
+
+        Returns:
+            torch.Tensor: Float32 tensor ready for network inference.
         """
-
-        # -------------------------
-        # Cargar preprocessing
-        # -------------------------
-        data = preprocessor
-
-        scaler = data["scaler"]
-        feature_columns = data["feature_columns"]
+        # Extract components from the loaded joblib dictionary
+        scaler = self.preprocessor_data["scaler"]
+        feature_columns = self.preprocessor_data["feature_columns"]
 
         numerical_cols = ["Age", "Job", "Credit amount", "Duration"]
         categorical_cols = [
@@ -111,77 +112,90 @@ class CreditScoringRiskPredictor:
             "Purpose",
         ]
 
-        # -------------------------
-        # Limpieza NA (MISMA lógica)
-        # -------------------------
+        # --- 1. Clean Missing Values (NA Handling) ---
         df = df.replace("NA", np.nan)
         df["Saving accounts"] = df["Saving accounts"].fillna("none")
         df["Checking account"] = df["Checking account"].fillna("none")
 
-        # -------------------------
-        # Numéricas
-        # -------------------------
-        X_num = scaler.transform(df[numerical_cols])
-        X_num = pd.DataFrame(X_num, columns=numerical_cols, index=df.index)
+        # --- 2. Numerical Features (Scaling) ---
+        # Transform returns a numpy array, we convert it back to a DataFrame
+        X_num_array = scaler.transform(df[numerical_cols])
+        X_num = pd.DataFrame(X_num_array, columns=numerical_cols, index=df.index)
 
-        # -------------------------
-        # Categóricas
-        # -------------------------
+        # --- 3. Categorical Features (One-Hot Encoding) ---
         X_cat = pd.get_dummies(df[categorical_cols], drop_first=False)
+        X_cat = X_cat.astype(float)  # Ensure floats for PyTorch
 
-        # Alinear columnas EXACTAS del entrenamiento
-        X_cat = X_cat.reindex(columns=feature_columns, fill_value=0)
+        # --- 4. Alignment & Concatenation ---
+        # Concat first, then reindex to match the EXACT training columns
+        X_combined = pd.concat([X_num, X_cat], axis=1)
 
-        # Eliminar columnas numéricas duplicadas
-        X_cat = X_cat.drop(columns=numerical_cols, errors="ignore")
+        # This reindex forces the dataframe to have the exact columns as the training set.
+        # Missing dummy columns (e.g., if a category wasn't in the single inference request) are filled with 0.
+        X_final = X_combined.reindex(columns=feature_columns, fill_value=0.0)
 
-        # -------------------------
-        # Concatenar
-        # -------------------------
-        X_final = pd.concat([X_num, X_cat], axis=1)
+        # --- 5. Convert to Tensor ---
+        return torch.tensor(X_final.values, dtype=torch.float32)
 
-        # Orden final (CRÍTICO)
-        X_final = X_final[feature_columns]
+    def predict(self, input_data: CreditScoringInput) -> CreditScoringOutPut:
+        """
+        Executes the full inference pipeline for credit scoring.
+        """
+        # 1. Convert Pydantic schema to DataFrame
+        input_dict = input_data.model_dump(by_alias=True, mode="json")
+        input_df = pd.DataFrame([input_dict])
 
-        # -------------------------
-        # A tensor
-        # -------------------------
-        X_tensor = torch.tensor(X_final.values, dtype=torch.float32)
+        # 2. Preprocess data into a tensor
+        input_tensor = self._preprocess_for_inference(input_df)
 
-        return X_tensor
+        # 3. Neural Network Forward Pass
+        with torch.no_grad():
+            logits = self.model(input_tensor)
+            probability = torch.sigmoid(logits).item()
 
+        # 4. Format Output
+        prediction = "good" if probability >= RISK_THRESHOLD else "bad"
 
-MODEL_CONFIG = {
-    "hidden_layers": [128, 64],
-    "use_batch_norm": True,
-    "activation_fn": "ReLU",
-    "dropout_rate": 0.15,
-}
-MODEL_PATH = "./models/mlp_service_Credit_scoring_model_v001d.pt"
-PREPROCESSOR_PATH = "./preprocess/german_credit_preprocessor.joblib"
+        logger.info(
+            f"Prediction generated: {prediction} | Probability: {probability:.4f}"
+        )
 
-predictor_instance = CreditScoringRiskPredictor(
-    model_path=MODEL_PATH,
-    preprocessor_path=PREPROCESSOR_PATH,
-    model_config=MODEL_CONFIG,
-)
+        return CreditScoringOutPut(prediction=prediction, probability=probability)
 
 
 if __name__ == "__main__":
-    from src.server.schemas import *
+    MODEL_CONFIG = {
+        "hidden_layers": [128, 64],
+        "use_batch_norm": True,
+        "activation_fn": "ReLU",
+        "dropout_rate": 0.15,
+    }
 
-    sample = CreditScoringInput(
-        **{
-            "Age": 17,
-            "Sex": "male",
-            "Job": 0,
-            "Housing": "rent",
-            "Saving accounts": "NA",
-            "Checking account": "NA",
-            "Credit amount": 10000,
-            "Duration": 12,
-            "Purpose": "car",
-        }
+    # Use pathlib for dynamic resolution
+    MODEL_PATH = ROOT_DIR / "models" / "mlp_service_Credit_scoring_model_v001d.pt"
+    PREPROCESSOR_PATH = ROOT_DIR / "preprocess" / "german_credit_preprocessor.joblib"
+
+    # Instantiate ONLY when running directly
+    predictor_instance = CreditScoringRiskPredictor(
+        model_path=MODEL_PATH,
+        preprocessor_path=PREPROCESSOR_PATH,
+        model_config=MODEL_CONFIG,
     )
-    result = predictor_instance.predict(sample)
-    print(result)
+
+    # Test Sample
+    sample_data = {
+        "Age": 20,
+        "Sex": "female",
+        "Job": 0,
+        "Housing": "rent",
+        "Saving accounts": "NA",
+        "Checking account": "NA",
+        "Credit amount": 10000,
+        "Duration": 13,
+        "Purpose": "car",
+    }
+
+    sample_input = CreditScoringInput(**sample_data)
+    result = predictor_instance.predict(sample_input)
+    print("\n--- INFERENCE RESULT ---")
+    print(result.model_dump(by_alias=True, mode="json"))

@@ -1,3 +1,6 @@
+import os
+import sys
+
 import joblib
 import numpy as np
 import pandas as pd
@@ -6,7 +9,11 @@ from sklearn.impute import SimpleImputer
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+
 from src.data.EDA import perform_eda
+
 
 def check_unique_values(df):
     """
@@ -45,7 +52,13 @@ class Preprocess:
         random_state (int): Random seed for reproducibility.
     """
 
-    def __init__(self, datasource: dict, dataset_info: dict, random_state: int = 42,  show_unique_values: bool = False):
+    def __init__(
+        self,
+        datasource: dict,
+        dataset_info: dict,
+        random_state: int = 42,
+        show_unique_values: bool = False,
+    ):
         self.datasource = datasource
         self.dataset_info = dataset_info
         self.random_state = random_state
@@ -150,7 +163,6 @@ class Preprocess:
 
         # 1. NUMERICAL FEATURES CLEANING
         if hasattr(self, "num_cols") and self.num_cols:
-
             # Logic Rule: Prices and Income should not be negative
             monetary_cols = [
                 c
@@ -164,8 +176,6 @@ class Preprocess:
             self.df[self.num_cols] = self.df[self.num_cols].fillna(
                 self.df[self.num_cols].median()
             )
-
-       
 
         # 3. BINARY FEATURES CLEANING
         if hasattr(self, "binary_cols") and self.binary_cols:
@@ -202,9 +212,9 @@ class Preprocess:
 
         # 4. FINAL ASSEMBLY
         # Create self.X containing only the features cleaned (excluding target and ID)
-        all_features = self.num_cols + self.binary_cols #+ self.cat_cols
+        all_features = self.num_cols + self.binary_cols  # + self.cat_cols
         self.X = self.df[all_features].copy()
-           
+
         print(
             f"Cleaning completed. Feature matrix 'self.X' ready. Shape: {self.X.shape}"
         )
@@ -225,7 +235,7 @@ class Preprocess:
         self.preprocessor = ColumnTransformer(
             transformers=[
                 ("num", num_pipeline, num_cols),
-                #("cat", OneHotEncoder(handle_unknown="ignore"), cat_cols),
+                # ("cat", OneHotEncoder(handle_unknown="ignore"), cat_cols),
                 ("bin", "passthrough", binary_cols),
             ]
         )
@@ -313,10 +323,7 @@ if __name__ == "__main__":
     """Entry point: load config and execute preprocessing pipeline with serialization."""
     # To execute this file in test mode, run from the project root(mobile-churn) with:
     # python src/data/preprocess.py --config 0
-    import os
-    import sys
 
-    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
     from utils.config import Config, parse_args
 
     config_index = parse_args().config
@@ -333,5 +340,4 @@ if __name__ == "__main__":
     x.split()
     x.preprocess_fit()
     x.preprocess_transform()
-    x.rebuild_dataframes()# success
-    
+    x.rebuild_dataframes()  # success

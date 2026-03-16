@@ -1,2 +1,4 @@
 /models
 /preprocess
+*/__pycache__/
+.pytest_cache
