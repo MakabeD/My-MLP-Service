@@ -4,3 +4,6 @@
     url = https://dagshub.com/MakabeD/MLP_services.dvc
     auth = basic
     user = MakabeD
+['remote "origin"']
+    url = s3://dvc
+    endpointurl = https://dagshub.com/MakabeD/MLP_services.s3
