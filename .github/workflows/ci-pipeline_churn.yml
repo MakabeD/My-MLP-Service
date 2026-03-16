@@ -29,4 +29,4 @@ jobs:
       - name: Pull DVC data
         run: dvc pull
       - name: Run test
-        run: pytest python/mobile-churn/src/test/
+        run: pytest src/test/
