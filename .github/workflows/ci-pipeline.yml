@@ -22,7 +22,12 @@ jobs:
         run: pip install pytest
       - name: Install DVC
         run: pip install dvc
+      - name: Configure dagshub credentials
+        run: |
+          dvc remote modify origin --local auth basic
+          dvc remote modify origin --local user MakabeD
+          dvc remote modify origin --local password ${{ secrets.DAGSHUB_TOKEN }}
       - name: Pull DVC data 
-        run: dvc pull
+        run: dvc pull -r origin
       - name: Run tests
         run: pytest ./python/credit-scoring/src/test/
