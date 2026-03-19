@@ -14,15 +14,21 @@ def print_dir_list(dir_name_list):
 
 def config_dir_list(path) -> list:
     try:
-        subdirectorios = [
-            nombre
-            for nombre in os.listdir(path)
-            if os.path.isdir(os.path.join(path, nombre))
-            and compare_pattern(nombre, REGEX)
+        subdirs = [
+            name
+            for name in os.listdir(path)
+            if os.path.isdir(os.path.join(path, name))
+            and compare_pattern(name, REGEX)
         ]
-        return subdirectorios
+        subdirs_sorted = sorted(
+            subdirs, 
+            key=lambda x: int(re.sub(r'\D', '', x)) 
+        )
+        
+        return subdirs_sorted
+        
     except FileNotFoundError:
-        print(f"Error: the path '{path}' do not exist")
+        print(f"Error: the path '{path}' does not exist")
         return []
     except PermissionError:
         print(f"Error: do not have access to '{path}'")
