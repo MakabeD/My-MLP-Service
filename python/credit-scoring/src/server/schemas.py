@@ -56,7 +56,7 @@ class CreditScoringInput(BaseModel):
     Checking_account: checking_accountEnum = Field(
         ..., alias="Checking account", description="estado de la cuenta corriente."
     )
-    Credit_amount: int = Field(
+    Credit_amount: float = Field(
         ..., gt=0, alias="Credit amount", description="Monto del credito solicitado."
     )
     Duration: int = Field(..., gt=0, description="Duracion del credito en meses.")
