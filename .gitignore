@@ -1,8 +1,11 @@
 *.venv/
 *venv/
 datasets/
-/datasets
 */models
 */preprocess
 /models
 /preprocess
+*__pycache__/
+*.py[cod]
+*/mlruns/
+/datasets

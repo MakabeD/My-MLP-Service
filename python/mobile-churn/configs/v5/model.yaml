@@ -1,0 +1,8 @@
+model_config:
+  model_name: mlp_service_telecom-churn_v5.pt
+  model_version: v5
+  architecture:
+    hidden_layers: [128, 64]
+    dropout_rate: 0.3
+    use_batch_norm: true
+    activation_fn: GELU

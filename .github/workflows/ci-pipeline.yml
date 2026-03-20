@@ -2,22 +2,32 @@ name: pipeline CI/CD MLOps
 
 on:
   pull_request:
-    branches: [ main, dev]
+    branches: [main, dev]
+    paths:
+      - "python/credit-scoring/**"
 jobs:
   build_and_test:
     runs-on: ubuntu-latest
     steps:
       - name: Check repository
         uses: actions/checkout@v4
-      
+
       - name: SetUp Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11.9'  
+          python-version: "3.11.9"
       - name: Install requirements
         run: pip install -r ./python/credit-scoring/requirements.txt
       - name: Install pytest
         run: pip install pytest
+      - name: Install DVC
+        run: pip install dvc
+      - name: Configure dagshub credentials
+        run: |
+          dvc remote modify origin --local auth basic
+          dvc remote modify origin --local user MakabeD
+          dvc remote modify origin --local password ${{ secrets.DAGSHUB_TOKEN }}
+      - name: Pull DVC data 
+        run: dvc pull -r origin
       - name: Run tests
-        run: pytest ./python/credit-scoring/src/test/test_model_creation.py
-        
+        run: pytest ./python/credit-scoring/src/test/

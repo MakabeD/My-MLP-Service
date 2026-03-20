@@ -1,0 +1,16 @@
+training_params:
+  epochs: 200
+  batch_size: 16
+  optimizer:
+    name: "Adam"
+    learning_rate: 0.0003
+    weight_decay: 0.0002
+  loss_function:
+    use_pos_weight: false
+  scheduler:
+    name: "ReduceLROnPlateau"
+    patience: 8
+    factor: 0.3
+  early_stopping:
+    patience: 20
+    delta: 0.0005

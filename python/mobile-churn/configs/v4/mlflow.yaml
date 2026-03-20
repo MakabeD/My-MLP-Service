@@ -1,0 +1,9 @@
+mlflow_config:
+  experiment_name: "telecom_churn_prediction"
+  run_name: "telecom_churn_v4_run"
+  description: "Baseline model with increased regularization"
+  tags:
+    - "mobile_churn"
+    - "mlp"
+    - "baseline"
+    - "v1"
