@@ -45,7 +45,7 @@ async def route_to_churn(payload: dict):
         "Content-Type": "application/json"
     }
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=30.0) as client:
         response = await client.post(
             f"{CHURN_URL}/predict",
             json=payload,
@@ -79,9 +79,9 @@ async def route_to_credit(payload: dict):
         "Content-Type": "application/json"
     }
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=30.0) as client:
         response = await client.post(
-            f"{CHURN_URL}/predict",
+            f"{CREDIT_URL}/predict",
             json=payload,
             headers=headers
         )
