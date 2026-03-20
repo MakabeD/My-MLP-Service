@@ -59,3 +59,37 @@ async def route_to_churn(payload: dict):
         )
 
     return response.json()
+
+@app.post("/api/mlp/credit/scoring")
+async def route_to_credit(payload: dict):
+    """
+    Forward prediction requests to the private credit scoring  model service.
+    """
+
+    token = get_google_token(CREDIT_URL)
+
+    if not token:
+        raise HTTPException(
+            status_code=500,
+            detail="Gateway could not obtain Google credentials."
+        )
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            f"{CHURN_URL}/predict",
+            json=payload,
+            headers=headers
+        )
+
+    if response.status_code != 200:
+        raise HTTPException(
+            status_code=response.status_code,
+            detail=f"Private model request failed: {response.text}"
+        )
+
+    return response.json()
