@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 import httpx
 import google.auth.transport.requests
 import google.oauth2.id_token
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title="API Gateway",
