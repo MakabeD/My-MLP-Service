@@ -1,8 +1,22 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends, Header
 import httpx
 import google.auth.transport.requests
 import google.oauth2.id_token
+import os
 from fastapi.middleware.cors import CORSMiddleware
+from churn_schemas import ChurnInput
+from credit_schemas import CreditScoringInput
+
+API_KEY=os.getenv("SECRET_API_KEY", "1")
+
+def verify_api_key(x_api_key: str = Header(None, description="API KEY")):
+
+    if x_api_key != API_KEY:
+        raise HTTPException(
+            status_code=401, 
+            detail="Access denied: Invalid or missing API key"
+        )
+    return x_api_key
 
 app = FastAPI(
     title="API Gateway",
@@ -10,7 +24,7 @@ app = FastAPI(
 )
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"], 
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -33,8 +47,8 @@ def get_google_token(audience_url: str) -> str | None:
         return None
 
 
-@app.post("/api/mlp/predict/churn")
-async def route_to_churn(payload: dict):
+@app.post("/api/mlp/predict/churn", dependencies=[Depends(verify_api_key)])
+async def route_to_churn(payload: ChurnInput):
     """
     Forward prediction requests to the private churn model service.
     """
@@ -55,7 +69,7 @@ async def route_to_churn(payload: dict):
     async with httpx.AsyncClient(timeout=30.0) as client:
         response = await client.post(
             f"{CHURN_URL}/predict",
-            json=payload,
+            json=payload.model_dump(mode='json', by_alias=True),
             headers=headers
         )
 
@@ -67,8 +81,8 @@ async def route_to_churn(payload: dict):
 
     return response.json()
 
-@app.post("/api/mlp/credit/scoring")
-async def route_to_credit(payload: dict):
+@app.post("/api/mlp/credit/scoring",dependencies=[Depends(verify_api_key)])
+async def route_to_credit(payload: CreditScoringInput):
     """
     Forward prediction requests to the private credit scoring  model service.
     """
@@ -89,7 +103,7 @@ async def route_to_credit(payload: dict):
     async with httpx.AsyncClient(timeout=30.0) as client:
         response = await client.post(
             f"{CREDIT_URL}/predict",
-            json=payload,
+            json=payload.model_dump(mode='json', by_alias=True),
             headers=headers
         )
 
