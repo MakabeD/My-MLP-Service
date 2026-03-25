@@ -2,10 +2,13 @@ from fastapi import FastAPI, HTTPException, Depends, Header
 import httpx
 import google.auth.transport.requests
 import google.oauth2.id_token
-import os
+import os, sys
 from fastapi.middleware.cors import CORSMiddleware
-from churn_schemas import ChurnInput
-from credit_schemas import CreditScoringInput
+from pathlib import Path
+ROOT_PATH=Path(__file__).resolve().parent.parent.parent
+sys.path.append(ROOT_PATH)
+from src.gateway.churn_schemas import ChurnInput
+from src.gateway.credit_schemas import CreditScoringInput
 
 API_KEY=os.getenv("SECRET_API_KEY", "1")
 
