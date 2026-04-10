@@ -21,9 +21,6 @@ class DataProcessing:
 
         self.joblib_validation(test_size, val_size, random_state)
 
-    # --------------------------------------------------
-    # JOBLIB
-    # --------------------------------------------------
     def joblib_validation(self, test_size, val_size, random_state):
         if os.path.exists(self.cache_path):
             print(".joblib existente, se usará")
@@ -59,9 +56,6 @@ class DataProcessing:
                 self.cache_path,
             )
 
-    # --------------------------------------------------
-    # DATA PROCESSING
-    # --------------------------------------------------
     def process_data(self, test_size, val_size, random_state):
         # Target
         y = self.df["Risk"].map({"good": 1, "bad": 0})
@@ -83,10 +77,8 @@ class DataProcessing:
             "Purpose",
         ]
 
-        # One-hot completo (ANTES del split)
         X_cat = pd.get_dummies(X[categorical_cols], drop_first=False)
 
-        # Split
         X_num = X[numerical_cols]
 
         X_train_num, X_temp_num, y_train, y_temp = train_test_split(
@@ -104,14 +96,11 @@ class DataProcessing:
             stratify=y_temp,
             random_state=random_state,
         )
-
-        # Fit scaler SOLO con train
         self.scaler = StandardScaler()
         X_train_scaled = self.scaler.fit_transform(X_train_num)
         X_val_scaled = self.scaler.transform(X_val_num)
         X_test_scaled = self.scaler.transform(X_test_num)
 
-        # Reconstruir numéricos
         X_train_num = pd.DataFrame(
             X_train_scaled, columns=numerical_cols, index=X_train_num.index
         )
@@ -122,15 +111,14 @@ class DataProcessing:
             X_test_scaled, columns=numerical_cols, index=X_test_num.index
         )
 
-        # Concatenar categóricas
         X_train = pd.concat([X_train_num, X_cat.loc[X_train_num.index]], axis=1)
         X_val = pd.concat([X_val_num, X_cat.loc[X_val_num.index]], axis=1)
         X_test = pd.concat([X_test_num, X_cat.loc[X_test_num.index]], axis=1)
 
-        # Guardar columnas finales (CRÍTICO para predicción)
+    
         self.feature_columns = X_train.columns
 
-        # Asegurar mismo orden
+
         X_val = X_val.reindex(columns=self.feature_columns)
         X_test = X_test.reindex(columns=self.feature_columns)
 
@@ -141,9 +129,6 @@ class DataProcessing:
         self.y_val = y_val
         self.y_test = y_test
 
-    # --------------------------------------------------
-    # GETTERS (SIN CAMBIOS)
-    # --------------------------------------------------
     def get_train(self):
         return self.X_train, self.y_train
 
