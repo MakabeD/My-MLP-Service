@@ -1,4 +1,4 @@
-# 🧠 Machine Learning Services (MLP Portfolio)
+# 🧠 Machine Learning Services
 
 Welcome to the central repository for my Machine Learning services. These projects are built with robust version control (using Git and DVC) and MLOps best practices. The main goal of this repository is to deploy a set of model pipelines capable of solving real-life industry problems.
 

@@ -3,28 +3,28 @@
 To run the Mobile Churn API locally, ensure you have **Python 3.10** installed.
 
 **1. Navigate to the service directory:**
-\`\`\`bash
+```bash
 cd ./python/mobile-churn
-\`\`\`
+```
 
 **2. Install dependencies:**
 
-\`\`\`bash
+```bash
 pip install -r requirements.txt
 
-\`\`\`
+```
 *(Note: Make sure `fastapi[standard]` and `dvc` are included in your requirements file).*
 
 **3. Pull the model and data:**
 Download the versioned models and required datasets from the DAGsHub remote storage:
-\`\`\`bash
+```bash
 dvc pull
-\`\`\`
+```
 
 **4. Start the FastAPI server:**
-\`\`\`bash
+```bash
 fastapi dev src/server/main.py
-\`\`\`
+```
 
 **5. Test the API:**
 The service is now ready to be consumed! Open your browser and navigate to the auto-generated Swagger UI to test the endpoints:
