@@ -1,6 +1,6 @@
-# 🧠 Machine Learning Services
+# 🧠 Deep Learning Services
 
-Welcome to the central repository for my Machine Learning services. These projects are built with robust version control (using Git and DVC) and MLOps best practices. The main goal of this repository is to deploy a set of model pipelines capable of solving real-life industry problems.
+Welcome to the central repository for my Deep Learning services. These projects are built with robust version control (using Git and DVC) and MLOps best practices. The main goal of this repository is to deploy a set of model pipelines capable of solving real-life industry problems.
 
 Currently, this repository hosts two main services:
 1. **Credit Scoring Service**
